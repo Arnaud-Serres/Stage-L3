@@ -150,7 +150,7 @@ def time_focus_renyi_ite(
     for m in range(M):
         P[m, :] = P0[m, :] + r * (x_norm**2) * u[m]
 
-    # Computing the density with regularization
+    # Computing the density with regularisation
     rho = np.zeros((M, N))
     for n in range(N):
         s = np.sum(P[:, n])

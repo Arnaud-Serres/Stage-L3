@@ -175,7 +175,6 @@ def time_focus_entropy_ref(W, max_focus, alpha=2):
     alpha = (max_focus - 1) / (M - m)
     beta = 1 - alpha * m
     sigma = alpha * sigma + beta
-
     return sigma
 
 
