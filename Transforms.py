@@ -131,7 +131,7 @@ def make_stftwin(t,wintype,winlen,L,sigma):
 
     h = np.zeros(L)
     if wintype == "gauss":
-        h[range(winlen)] = gaussian(winlen, winlen / 10)
+        h[range(winlen)] = gaussian(winlen, winlen / 20)
     elif wintype == "hann":
         h[range(winlen)] = hann(winlen)
     else:
@@ -208,7 +208,7 @@ def tftft(x, wintype, win_duration, sigma, a=1, Fs=1):
 
         # Compute fixed time transform
         tmp = x * h_t
-        V[:, n] = rfft(tmp)
+        V[:, n] = rfft(tmp, norm="ortho")
 
     return V
 
@@ -246,7 +246,7 @@ def itftft(V, wintype, win_duration, sigma, L, Fs=1):
     a = math.floor(L / N)
     
     # Compute fixed time inverse Fourier transform
-    V_invhat = irfft(V,n=L,axis=0)  #on veut une sortie de taille L, axis=0: chaque colonne
+    V_invhat = irfft(V,n=L,axis=0, norm="ortho")
     
     # Initialize admissibility function
     k_sigma = np.zeros(L)

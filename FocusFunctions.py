@@ -305,15 +305,13 @@ def time_focus_renyi(x, wintype, win_duration, a, Fs, max_focus, p, u):
     return sigma
 
 
-def time_focus_renyi_test(x, wintype, win_duration, a, Fs, max_focus, p, u):
+def rmin(h, sigma_min, u, p, A):
     """
-    time_focus_renyi:
-        r is set to rmin
-        A is computed from max_focus
+    rmin:
 
     Parameters
     ----------
-    x : array of float64
+    h : array of float64
         Input signal.
     wintype : array of characters
         Window type  ('gauss', 'hann', 'boxcar').
@@ -338,83 +336,12 @@ def time_focus_renyi_test(x, wintype, win_duration, a, Fs, max_focus, p, u):
         Focus function.
 
     """
-    x_norm = np.linalg.norm(x, ord=2)
-    L = x.shape[0]
-    cst_focus = np.ones(L)
-
-    W = tftft(x, wintype, win_duration, cst_focus, a, Fs)
-
-    # Compute density, including regularization
-    r = rmin(wintype, win_duration, p)
-    P = np.abs(W) ** 2
-    P[0, :] += r * x_norm**2
-
-    # Evaluate un-normalized focus function
-    norm_cst = np.sum(P, axis=0)
-    norm_cst = np.tile(norm_cst, (W.shape[0], 1))
-    P /= norm_cst
-    Rp = np.log(np.linalg.norm(P, ord=p, axis=0))
-    Rp *= p / (1 - p)
-
-    # Compute Ru
-    Ru = np.linalg.norm(u, ord=p)
-    Ru = (p / (p - 1)) * np.log(Ru)
-
-    sigma = Rp - Ru
-
-    max_sigma = np.max(sigma)
-
-    A = compute_A(max_focus)  # ou max_sigma?
-
-    sigma = 1 + A * sigma
-    return sigma
-
-
-def compute_A(max_focus, precision=1e-5, A_inf=0, A_sup=20, max_iter=1000):
-    """
-    compute_A:
-        Does a dichotomic search on x --> x*ln(1 + 1/x)
-        Returns A such that A*ln(1 + 1/A) is approximatly max_focus, with a precision of "precision"
-
-    Parameters
-    ----------
-    max_focus : float
-        Target value.
-    precision : float
-        Wanted precision of the result.
-    A_inf : float
-        Bottom value of A.
-    A_sup : float
-        Upper value of A.
-    Max_iter : int
-        Maximum iteration.
-
-    Returns
-    -------
-    approx_A : float
-        Approximated value of A, with a precision of "precision".
-
-    """
-    approx_A = 0.5 * (A_inf + A_sup)
-    for i in range(max_iter):
-        if abs((approx_A * np.log(1 + (1 / approx_A))) - max_focus) < precision:
-            return approx_A
-        if ((approx_A * np.log(1 + (1 / approx_A))) - max_focus) < 0:
-            A_inf = approx_A
-            approx_A = 0.5 * (A_inf + A_sup)
-        else:
-            A_sup = approx_A
-            approx_A = 0.5 * (A_inf + A_sup)
-    return approx_A
-
-
-def rmin(h, sigma_min, u, p, A):
     h_norm_inf = np.max(np.abs(h))
     h_norm_2 = np.linalg.norm(h, ord=2)
     u_norm_p = np.linalg.norm(u, ord=p)
     factor1 = (A * p) / ((p - 1)*(1 - sigma_min))
     return (
-        factor1 * ((h_norm_inf ** (2 / p)) * (h_norm_2 ** (2 - (2 / p)))) / (u_norm_p)
+        factor1 * (((h_norm_inf ** (2 / p)) * (h_norm_2 ** (2 - (2 / p)))) / (u_norm_p))
     )
 
 

@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from Transforms import tftft, make_stftwin
+from Transforms import tftft
 from FocusFunctions import rmin
 from scipy.signal.windows import hann, gaussian, boxcar
 
@@ -38,22 +38,26 @@ def time_focus_renyi(x, wintype, win_duration, a, Fs, A, p, u, r):
         Focus function.
 
     """
+    cst_focus = np.ones(x.shape[0])
     x_norm = np.linalg.norm(x, ord=2)
-    L = x.shape[0]
-    cst_focus = np.ones(L)
+    u_norm_p = np.linalg.norm(u, ord=p)
     W = tftft(x, wintype, win_duration, cst_focus, a, Fs)
+    W_abs_car = np.abs(W) ** 2
+    rf = r * (x_norm**2)
 
     # Computing the numerator
-    P0 = np.abs(W) ** 2
-    M, N = P0.shape
+    M, N = W.shape
     numerator = np.zeros((M, N))
     for m in range(M):
-        numerator[m, :] = P0[m, :] + r * (x_norm**2) * u[m]
+        for n in range(N):
+            numerator[m, n] = W_abs_car[m, n] + rf * u[m]
 
+    # Computing the numerator
     denominator = np.zeros(N)
     for n in range(N):
-        denominator[n] = np.sum(P0[:, n]) + r * (x_norm**2)
+        denominator[n] = (np.linalg.norm(W[:, n]) ** 2) + rf
 
+    # Computing the density
     rho = np.zeros((M, N))
     for n in range(N):
         rho[:, n] = numerator[:, n] / denominator[n]
@@ -64,26 +68,31 @@ def time_focus_renyi(x, wintype, win_duration, a, Fs, A, p, u, r):
         g[n] = (1 / (1 - p)) * np.log(np.sum(rho[:, n] ** p))
 
     # Compute Ru
-    Ru = np.linalg.norm(u, ord=p)
-    print(Ru, "Ru", g, "g")
-    Ru = (p / (1 - p)) * np.log(Ru)
-    print(Ru, "Ru")
+    Ru = (p / (1 - p)) * np.log(u_norm_p)
     sigma = 1 + A * (g - Ru)
-    print(sigma, "sigma")
+
     return sigma
 
 
 def time_focus_renyi_init(M, A, p, u, r):
     M_norm = np.linalg.norm(M, ord=2)
-    P0 = np.abs(M) ** 2
-    L, N = P0.shape
+    u_norm_p = np.linalg.norm(u, ord=p)
+    M_abs_car = np.abs(M) ** 2
+    rf = r * (M_norm**2)
+    L, N = M.shape
+
+    # Computing the numerator
     numerator = np.zeros((L, N))
-    for l in range(L):
-        numerator[l, :] = P0[l, :] + r * (M_norm**2) * u[l]
+    for k in range(L):
+        for n in range(N):
+            numerator[k, n] = M_abs_car[k, n] + rf * u[k]
+
+    # Computing the denominator
     denominator = np.zeros(N)
     for n in range(N):
-        denominator[n] = np.sum(P0[:, n]) + r * (M_norm**2)
+        denominator[n] = (np.linalg.norm(M[:, n]) ** 2) + rf
 
+    # Computing the density
     rho = np.zeros((L, N))
     for n in range(N):
         rho[:, n] = numerator[:, n] / denominator[n]
@@ -93,12 +102,9 @@ def time_focus_renyi_init(M, A, p, u, r):
     for n in range(N):
         g[n] = (1 / (1 - p)) * np.log(np.sum(rho[:, n] ** p))
 
-    Ru = np.linalg.norm(u, ord=p)
-    print(Ru, "Ru", g, "g")
-    Ru = (p / (1 - p)) * np.log(Ru)  # toujours nul
-    print(Ru, "Ru")
+    # Compute sigma
+    Ru = (p / (1 - p)) * np.log(u_norm_p)
     sigma = 1 + A * (g - Ru)
-    print(sigma, "sigma")
     return sigma
 
 
@@ -150,7 +156,7 @@ def time_focus_renyi_ite(
     for m in range(M):
         P[m, :] = P0[m, :] + r * (x_norm**2) * u[m]
 
-    # Computing the density with regularisation
+    # Computing the density with regularis ation
     rho = np.zeros((M, N))
     for n in range(N):
         s = np.sum(P[:, n])

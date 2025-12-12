@@ -1,7 +1,7 @@
 from fonction_focus import A_to_max_focus, max_focus_to_A, rmin
 import math
 from toy_signals import noisy_spikes_sine
-from fonction_focus import make_stftwin_bis
+from FocusFunctions import make_stftwin
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -15,15 +15,15 @@ f1 = 1000
 ampl = 1 / 20
 times, x = noisy_spikes_sine(T, Fs, nb_spikes, psnr, f1, ampl)
 alpha = 2
-sigma_max = 5
-sigma_min = 0.5
-A = 42
+# sigma_max = 10
+sigma_min = 0.1
+A = 100
 u = np.zeros(x.shape[0])
 u[0] = 1
 
 sigma = np.ones(x.shape[0])
 winlen = math.floor(0.1 * 8000)
-h = make_stftwin_bis(0, "gauss", winlen, x.shape[0], sigma)
+h = make_stftwin(0, "gauss", winlen, x.shape[0], sigma)
 r = rmin(h, sigma_min, u, alpha, A)
 p = 4
 nb_iter = 40
