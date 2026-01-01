@@ -8,11 +8,8 @@ Created on  2025
 
 import os
 import sys
-# homedir = os.getenv("HOME")
-# sys.path.append(homedir + '/Science/git/focus/')
-
-parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-sys.path.append(parent_dir)
+homedir = os.getenv("HOME")
+sys.path.append(homedir + '/Science/git/focus/')
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -31,9 +28,9 @@ from toy_signals import noisy_spikes_sine
 # =============================================================================
 
 # Paths
-respath = os.path.join(parent_dir, "results")
-sigpath = os.path.join(parent_dir, "signals")
-os.makedirs(respath, exist_ok=True)
+refpath = homedir + '/Science/git/focus/'
+respath = refpath + 'results/'
+sigpath = refpath + 'signals/'
 
 # Spectrogram
 alpha = 2
